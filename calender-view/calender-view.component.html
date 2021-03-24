@@ -1,0 +1,301 @@
+<div class="calendar">
+  <ng-container *ngIf="pickerType === 'calendar'" [ngTemplateOutlet]="calendarTypeHeader"></ng-container>
+  <div class="calendar-content">
+    <ng-container *ngIf="pickerType === 'calendar'" [ngTemplateOutlet]="calendarContent"></ng-container>
+    <ng-container *ngIf="pickerType === 'calendarBasic'" [ngTemplateOutlet]="calendarBasicContent"></ng-container>
+    <ng-container *ngIf="pickerType === 'calendarInline'" [ngTemplateOutlet]="calendarInlineContent"></ng-container>
+    <ng-container *ngIf="pickerType === 'timeInline'" [ngTemplateOutlet]="timeInlineContent"></ng-container>
+    <ng-container *ngIf="pickerType === 'timeBasic'" [ngTemplateOutlet]="timeBasicContent"></ng-container>
+  </div>
+</div>
+
+
+<!-- Common HTML-->
+<ng-template #calendarContent>
+  <ng-container [ngTemplateOutlet]="previousMonthArrowFunction" *ngIf="pickerType === 'calendar'"></ng-container>
+
+
+  <div class="calendar-content-container"
+       [style.height]="pickerType === 'calendarBasic' || pickerType === 'calendarInline' ? 'calc(100% - 2em)' : '100%'"
+       [style.width]="pickerType === 'calendarBasic' || pickerType === 'calendarInline' ? '100%' : null">
+    <div class="calendar-content-container-header">
+      <div class="calendar-content-container-header-days-name"
+           [class.calendar-content-container-header-days-name-calendarBasic]="pickerType === 'calendarBasic' || pickerType === 'calendarInline'"
+           [class.calendar-content-container-header-days-name-calendar]="pickerType === 'calendar'">
+        <span class="calendar-content-container-header-days-name-item"
+              [class.calendar-content-container-header-days-name-calendarBasic-item]="pickerType === 'calendarBasic' || pickerType === 'calendarInline'"
+              *ngFor="let dayName of weekdaysObj">
+          {{pickerType === 'calendarBasic' || pickerType === 'calendarInline' ? dayName.shortName : dayName.fullName}}
+        </span>
+      </div>
+    </div>
+    <div class="calendar-content-container-body">
+      <div class="calendar-content-container-body-days"
+           [class.calendar-content-container-body-days-calendarBasic]="pickerType === 'calendarBasic' || pickerType === 'calendarInline'"
+           [class.calendar-content-container-body-days-calendar]="pickerType === 'calendar'">
+        <div class="calendar-content-container-body-days-day"
+             *ngFor="let day of days"
+             [class.calendar-content-container-body-days-day-calendarBasic]="pickerType === 'calendarBasic' || pickerType === 'calendarInline'"
+             [class.calendar-content-container-body-days-day-calendar]="pickerType === 'calendar'"
+             [class.calendar-content-container-body-days-day-week-holiday]="day.day === 'Sunday' || day.day === 'Saturday'"
+             [class.calendar-content-container-body-days-day-today]="today.month === currentDetail.month && today.year === currentDetail.year && today.day === day.index"
+             [class.calendar-content-container-body-days-day-disable]="day.disabled"
+             [class.calendar-content-container-body-days-day-selected]="selectedDateData.day === day.index && currentDetail.month === selectedDateData.month && currentDetail.year === selectedDateData.year"
+             (click)="$event.stopPropagation();selectDate(day)">
+          <ng-container *ngIf="!day.disabled">
+            <div [class.calendar-content-container-body-days-day-inlineDate]="pickerType === 'calendar'"
+                 [class.calendar-content-container-body-days-day-basicDate]="pickerType === 'calendarBasic' || pickerType === 'calendarInline'"
+                 [class.calendar-content-container-body-days-day-week-holiday]="(day.day === 'Sunday' || day.day === 'Saturday') && day.index !== currentDetail.day"
+                 [class.calendar-content-container-body-days-day-today]="today.month === currentDetail.month && today.year === currentDetail.year && today.day === day.index">
+              <ng-container *ngIf="!contentTemplate">{{day.index}}</ng-container>
+              <ng-container *ngIf="contentTemplate"
+                            [ngTemplateOutlet]="contentTemplate"
+                            [ngTemplateOutletContext]="{item: day}">
+              </ng-container>
+            </div>
+          </ng-container>
+        </div>
+      </div>
+    </div>
+  </div>
+  <ng-container [ngTemplateOutlet]="nextMonthArrowFunction" *ngIf="pickerType === 'calendar'"></ng-container>
+</ng-template>
+
+<ng-template #nextMonthArrowFunction>
+  <i class="material-icons calendar-content-arrow"
+     [class.calendar-content-basic-input-content-container-arrow]="pickerType === 'calendarBasic' || pickerType === 'calendarInline'"
+     (click)="nextMonth()">
+    chevron_right
+  </i>
+</ng-template>
+
+<ng-template #previousMonthArrowFunction>
+  <i class="material-icons calendar-content-arrow"
+     [class.calendar-content-basic-input-content-container-arrow]="pickerType === 'calendarBasic' || pickerType === 'calendarInline'"
+     (click)="previousMonth()">
+    chevron_left
+  </i>
+</ng-template>
+<!-- End Common HTML-->
+
+
+<!-- Calendar Mode-->
+<ng-template #calendarTypeHeader>
+  <div class="calendar-header">
+    <label class="calendar-header-title" *ngIf="showSelectedDate">
+      <label class="calendar-header-title-day">{{selectedDateData.day}},</label>
+      <label class="calendar-header-title-month">{{month[selectedDateData.month -1].text}},</label>
+      <label class="calendar-header-title-year"> {{selectedDateData.year}},</label>
+      <label class="calendar-header-title-dayName"> {{getDayName()}}</label>
+    </label>
+    <div class="calendar-header-action" *ngIf="showHeaderAction">
+      <ng-container [ngTemplateOutlet]="changeYearMonthCalendarType"></ng-container>
+      <button class="calendar-header-action-today" mat-raised-button style="{border: 2px solid #FF008C; border-radius: 5px; color: #FF008C; font-weight: bold}"
+              (click)="goToToday()">Go To Today</button>
+    </div>
+  </div>
+</ng-template>
+
+<ng-template #changeYearMonthCalendarType>
+  <mat-form-field appearance="legacy" class="calendar-header-action-year">
+    <input matInput
+           [(ngModel)]="currentDetail.year"
+           [placeholder]="'Change Year'"
+           (ngModelChange)="changeYear($event)">
+  </mat-form-field>
+
+  <mat-form-field appearance="legacy" class="calendar-header-action-month">
+    <mat-select class="calendar-action-change-month"
+                [placeholder]="'Change Month'"
+                [(ngModel)]="currentDetail.month"
+                (ngModelChange)="changeMonth($event)" name="month">
+      <mat-option *ngFor="let item of month" [value]="item.value">
+        {{item.text}}
+      </mat-option>
+    </mat-select>
+  </mat-form-field>
+</ng-template>
+<!-- End Calendar Mode-->
+
+
+<!-- Basic Calendar Mode-->
+<ng-template #calendarBasicContent>
+  <form class="calendar-content-basic">
+    <mat-form-field class="calendar-content-basic-input" (ClickOutSideOfCalendarTime)="closeCalendar()">
+      <input type="text" matInput placeholder="" [value]="selectedDateData.year + ' - ' + selectedDateData.month + ' - ' + selectedDateData.day">
+      <mat-icon matSuffix (click)="openCalendar()">date_range</mat-icon>
+    </mat-form-field>
+  </form>
+</ng-template>
+
+<div *ngIf="showCalendarContent"
+     class="calendar-content-basic-input-content"
+     (click)="$event.stopPropagation();">
+  <div class="calendar-content-basic-input-content-header">
+    <ng-container *ngIf="!showYearList && !showMonthList" [ngTemplateOutlet]="previousMonthArrowFunction"></ng-container>
+    <ng-container [ngTemplateOutlet]="changeYearMonthBasic"></ng-container>
+    <ng-container *ngIf="!showYearList && !showMonthList" [ngTemplateOutlet]="nextMonthArrowFunction"></ng-container>
+  </div>
+  <ng-container *ngIf="!showYearList && !showMonthList" [ngTemplateOutlet]="calendarContent"></ng-container>
+  <div *ngIf="showYearList && !showMonthList" class="calendar-content-basic-input-content-container">
+    <ng-container [ngTemplateOutlet]="yearListContent"></ng-container>
+  </div>
+  <div *ngIf="!showYearList && showMonthList" class="calendar-content-basic-input-content-container">
+    <ng-container [ngTemplateOutlet]="monthListContent"></ng-container>
+  </div>
+</div>
+
+<ng-template #yearListContent>
+  <ng-container [ngTemplateOutlet]="previousMonthArrowFunction"></ng-container>
+  <div class="calendar-years" [style.width]="pickerType === 'calendarBasic' || pickerType === 'calendarInline' ? 'calc(100% - 3em)' : null">
+    <div class="calendar-years-content">
+      <div class="calendar-years-content-year"
+           *ngFor="let item of yearsList"
+           [class.calendar-years-content-year-current]="today.year === item"
+           [class.calendar-years-content-year-selected]="selectedDateData.year === item"
+           (click)="$event.stopPropagation(); selectYear(item)">
+        <div>
+          <ng-container>{{item}}</ng-container>
+        </div>
+      </div>
+    </div>
+  </div>
+  <ng-container [ngTemplateOutlet]="nextMonthArrowFunction"></ng-container>
+</ng-template>
+
+<ng-template #monthListContent>
+  <div class="calendar-content-container"
+       [style.width]="pickerType === 'calendarBasic' || pickerType === 'calendarInline' ? '100%' : null">
+    <div class="calendar-months">
+      <div class="calendar-months-month"
+           *ngFor="let item of month"
+           [class.calendar-months-month-current]="currentDetail.year === today.year && today.month === item.value"
+           [class.calendar-months-month-selected]="item.value === selectedDateData.month"
+           (click)="$event.stopPropagation(); selectMonth(item)">
+        <div>
+          <ng-container>{{item.text}}</ng-container>
+        </div>
+      </div>
+    </div>
+  </div>
+</ng-template>
+
+<ng-template #changeYearMonthBasic>
+  <div class="calendar-content-inline-input-content-header-container">
+    <input type="number"
+           class="calendar-content-inline-input-content-header-container-year"
+           matInput placeholder=""
+           [value]="currentDetail.year"
+           (click)="$event.stopPropagation(); showYearList = true; showMonthList = false;">
+    <div class="calendar-content-inline-input-content-header-container-month"
+         (click)="$event.stopPropagation(); showMonthList = true; showYearList = false; ">{{month[currentDetail.month -1].text}}</div>
+  </div>
+</ng-template>
+<!-- End Basic Calendar Mode-->
+
+
+<!-- Calendar Inline Mode-->
+<ng-template #calendarInlineContent>
+<!--  <form class="calendar-content-inline">-->
+<!--    <mat-form-field class="calendar-content-inline-input">-->
+  <div class="calendar-content-inline">
+    <div class="calendar-content-inline-input">
+      <div class="calendar-content-inline-input-content">
+        <div class="calendar-content-inline-input-content-header">
+          <ng-container *ngIf="!showYearList && !showMonthList" [ngTemplateOutlet]="previousMonthArrowFunction"></ng-container>
+          <ng-container [ngTemplateOutlet]="changeYearMonthBasic"></ng-container>
+          <ng-container *ngIf="!showYearList && !showMonthList" [ngTemplateOutlet]="nextMonthArrowFunction"></ng-container>
+        </div>
+        <ng-container *ngIf="!showYearList && !showMonthList" [ngTemplateOutlet]="calendarContent"></ng-container>
+        <div *ngIf="showYearList && !showMonthList" class="calendar-content-inline-input-content-container">
+          <ng-container [ngTemplateOutlet]="yearListContent"></ng-container>
+        </div>
+        <div *ngIf="!showYearList && showMonthList" class="calendar-content-inline-input-content-container">
+          <ng-container [ngTemplateOutlet]="monthListContent"></ng-container>
+        </div>
+      </div>
+    </div>
+  </div>
+<!--    </mat-form-field>-->
+<!--  </form>-->
+</ng-template>
+<!-- End Calendar Inline Mode-->
+
+
+<!-- Time Basic Mode-->
+<ng-template #timeBasicContent>
+  <div class="calendar-content-time">
+    <mat-form-field class="calendar-content-time-times" (ClickOutSideOfCalendarTime)="closeCalendar()">
+      <input type="text"
+             matInput
+             placeholder=""
+             [(ngModel)]="time"
+             (keydown)="keyDown($event)"
+             (keyup)="keyUp($event)"
+             (click)="$event.stopPropagation()">
+      <mat-icon class="material-icons calendar-content-time-times-icon" matSuffix (click)="openTime()">access_time</mat-icon>
+      <div *ngIf="showTimeContent" class="calendar-content-time-times-content" (click)="$event.stopPropagation()">
+        <div class="calendar-content-time-times-content-panel">
+          <div class="calendar-content-time-times-content-panel-action">
+            <mat-icon class="material-icons" matTooltip="Back to Current Time" (click)="findCurrentTime()">av_timer</mat-icon>
+            <mat-icon class="material-icons" matTooltip="Cancel Editing" (click)="cancel()">clear</mat-icon>
+          </div>
+          <div class="calendar-content-time-times-content-options calendar-content-time-times-content-panel-time">
+            <div class="tempcalss" (wheel)="scrollNum($event, 'hour')">
+              <div *ngFor="let m of hourList" (click)="hourSelected=m.value;selectTime()">
+              <span class="calendar-content-time-times-content-options-minute-item"
+                    [class.calendar-content-time-times-content-options-minute-selected]="m.value === hourSelected">{{calcTime(m.value)}}
+              </span>
+              </div>
+            </div>
+            <div class="tempcalss" (wheel)="scrollNum($event, 'minute')">
+              <div *ngFor="let m of minuteList" (click)="minuteSelected=m.value;selectTime()">
+              <span class="calendar-content-time-times-content-options-minute-item"
+                    [class.calendar-content-time-times-content-options-minute-selected]="m.value === minuteSelected">{{calcTime(m.value)}}
+              </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </mat-form-field>
+  </div>
+</ng-template>
+<!-- End Time Basic Mode-->
+
+
+<!-- Time Inline Mode-->
+<ng-template #timeInlineContent>
+  <div class="calendar-content-time">
+    <mat-form-field class="calendar-content-time-times" (ClickOutSideOfCalendarTime)="closeCalendar()">
+      <div class="calendar-content-time-times-content" (click)="$event.stopPropagation()">
+        <div class="calendar-content-time-times-content-panel">
+          <div class="calendar-content-time-times-content-panel-header">
+            <span class="calendar-content-time-times-content-panel-header-time">{{time}}</span>
+            <div class="calendar-content-time-times-content-panel-header-action">
+              <span (click)="findCurrentTime()"> <mat-icon class="material-icons">av_timer</mat-icon>Show current</span>
+<!--              <mat-icon class="material-icons" matTooltip="Cancel Editing" (click)="cancel()">clear</mat-icon>-->
+            </div>
+          </div>
+          <div class="calendar-content-time-times-content-options calendar-content-time-times-content-panel-time">
+            <div class="tempcalss" (wheel)="scrollNum($event, 'hour')">
+              <div *ngFor="let m of hourList" (click)="hourSelected=m.value;selectTime()">
+              <span class="calendar-content-time-times-content-options-minute-item"
+                    [class.calendar-content-time-times-content-options-minute-selected]="m.value === hourSelected">{{calcTime(m.value)}}
+              </span>
+              </div>
+            </div>
+            <div class="tempcalss" (wheel)="scrollNum($event, 'minute')">
+              <div *ngFor="let m of minuteList" (click)="minuteSelected=m.value;selectTime()">
+              <span class="calendar-content-time-times-content-options-minute-item"
+                    [class.calendar-content-time-times-content-options-minute-selected]="m.value === minuteSelected">{{calcTime(m.value)}}
+              </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </mat-form-field>
+  </div>
+</ng-template>
+<!-- End Time Inline Mode-->

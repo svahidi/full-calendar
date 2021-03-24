@@ -1,0 +1,379 @@
+@mixin flex-content( $justify: center, $align: center, $direction: row, ) {
+  display: flex;
+  justify-content: $justify;
+  align-items: $align;
+  flex-direction: $direction;
+}
+
+@function em($pixels) {
+  @return ($pixels / 13) * 1em;
+}
+
+
+//@media screen and (max-width: 800px) {
+//  :root {
+//    --font-size-regular: 10px;
+//  }
+//  @function em($pixels) {
+//    @return ($pixels / 10) * 1em;
+//  }
+//}
+
+
+.calendar {
+  width: 100%;
+  height: 100%;
+  &-header {
+    @include flex-content(space-between);
+    height: 4em;
+    padding: em(13);
+    box-sizing: border-box;
+    min-width: 10em;
+    padding-bottom: 0;
+    &-title {
+      @include flex-content(flex-start);
+      min-width: 6em;
+      font-size: 1.231em;
+      &-year, &-month, &-day, &-dayName {
+        margin-right: .7em;
+      }
+    }
+    &-action {
+      @include flex-content(flex-end);
+      &-month, &-today {
+        margin-left: .7em;
+      }
+      &-month, &-year {
+        width: 9em;;
+      }
+
+    }
+  }
+  &-content {
+    @include flex-content(space-between, flex-start);
+    width: 100%;
+    height: calc(100% - 4em);
+    padding-top: 2em;
+    box-sizing: border-box;
+    &-arrow {
+      font-size: 2em;
+      color: #797777;
+      cursor: pointer;
+    }
+    &-calendarBasic {
+      font-size: 1em;
+    }
+    &-container {
+      width: 90%;
+      height: 100%;
+      &-header {
+        width: 100%;
+        height: 2em;
+        margin-bottom: 1em;
+        &-days-name {
+          display: grid;
+          grid-gap: .5em;
+          height: 100%;
+          &-calendar {
+            grid-template-columns: repeat(7, 13.5%);
+            grid-template-rows: repeat(1, 100%);
+          }
+          &-calendarBasic {
+            grid-template-columns: repeat(7, 11.4%);
+            grid-template-rows: repeat(1, 100%);
+            &-item {
+              font-size: .9em;
+            }
+          }
+          &-item {
+            @include flex-content();
+            height: 100%;
+          }
+        }
+      }
+      &-body {
+        height: calc(100% - 3em);
+        width: 100%;
+        &-days {
+          display: grid;
+          grid-gap: .5em;
+          width: 100%;
+          height: 100%;
+          &-calendar {
+            grid-template-columns: repeat(7, 13.5%);
+            grid-template-rows: repeat(6, 15.5%);
+          }
+          &-calendarBasic {
+            grid-template-columns: repeat(7, 11.4%);
+            grid-template-rows: repeat(6, 12%);
+          }
+          &-day {
+            flex-direction: column;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+            width: 100%;
+            height: 100%;
+            box-sizing: border-box;
+            cursor: pointer;
+            border-radius: 4px;
+            &-calendarBasic {
+              border-radius: 4px !important;
+            }
+            &-calendar {
+              border: em(1) solid #0000001f;
+            }
+            &-disable {
+              border: none;
+              box-shadow: none;
+              color: transparent !important;
+              background-color: transparent !important;
+              cursor: unset !important;
+            }
+            &-today {
+              background-color: #e0e7ea !important;
+              color: red !important;
+            }
+            &-week-holiday {
+              background-color: #f3f3f3;
+              color: gray;
+            }
+            &-selected {
+              background-color: #092192;
+              color: white;
+              border-radius: 4px;
+            }
+            &-inlineDate {
+              font-size: em(20);
+              width: 100%;
+              height: 100%;
+              @include flex-content();
+            }
+            &-basicDate {
+              font-size: .8em;
+              @include flex-content();
+            }
+          }
+        }
+      }
+    }
+    &-basic, &-inline {
+      &-input {
+        //position: relative;
+        &-content {
+          //position: absolute;
+          top: 35px;
+          width: 15em;
+          background: white;
+          border: 1px solid #e0e0e0;
+          height: 17em;
+          border-radius: 4px;
+          padding: .7em .7em;
+          &-container {
+            width: 100%;
+            height: calc(100% - 2.5em);
+            @include flex-content(space-between);
+            &-arrow {
+              font-size: 1.3em !important;
+            }
+          }
+          &-header {
+            @include flex-content(space-between);
+            height: 2em;
+            border-bottom: 1px solid #e0e0e0;
+            margin-bottom: .5em;
+            &-container {
+              @include flex-content();
+              input::-webkit-outer-spin-button,
+              input::-webkit-inner-spin-button {
+                -webkit-appearance: none;
+                margin: 0;
+              }
+              input[type=number] {
+                -moz-appearance: textfield;
+              }
+              &-year {
+                cursor: pointer;
+                width: 2.3em;
+                margin-left: .5em;
+              }
+              &-month {
+                cursor: pointer;
+                margin-left: .5em;
+              }
+            }
+          }
+        }
+      }
+    }
+    &-basic {
+      &-input-content {
+        width: 12.8em;
+      }
+    }
+    &-time {
+      @include flex-content(center, center, column);
+      &-times {
+        position: relative;
+        &-content {
+          position: absolute;
+          top: 35px;
+          width: 13em;
+          background: white;
+          border: 1px solid #949494;
+          height: 12em;
+          border-radius: 4px;
+          padding: 1em.5em;
+          &-panel {
+            box-sizing: border-box;
+            height: 100%;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            &-time {
+              height: calc(100% - 3.5em);
+            }
+            &-header {
+              @include flex-content(space-between);
+              &-time {
+                font-weight: 500;
+                color: #092192;
+              }
+              &-action {
+                @include flex-content(flex-end);
+                color: #9c9c9c;
+                height: 2em;
+                span {
+                  @include flex-content(flex-start);
+                  cursor: pointer;
+                  mat-icon {
+                    font-size: 1.3em;
+                  }
+                }
+                span:hover {
+                  color: #092192;
+                }
+                mat-icon {
+                  cursor: pointer;
+                  font-size: 1.3em;
+                  @include flex-content();
+                }
+              }
+            }
+            &-action {
+              @include flex-content(flex-end);
+              color: #9c9c9c;
+              height: 2em;
+              mat-icon {
+                cursor: pointer;
+                font-size: 1.3em;
+                @include flex-content();
+              }
+            }
+          }
+          &-options {
+            @include flex-content();
+            overflow: hidden;
+            height: calc(100% - 2em);
+            &-hour, &-minute  {
+              padding: 10em 0;
+              overflow: hidden;
+              height: 20em;
+              flex-direction: column;
+              @include flex-content(flex-start);
+              &-item {
+                font-size: 1.231em;
+                color: #9c9c9c;
+                cursor: pointer;
+              }
+              &-selected {
+                font-weight: 500;
+                color: #092192;
+              }
+            }
+          }
+        }
+        &-input {
+          border: none;
+          outline: none;
+          height: 100%;
+          font-size: em(16);
+        }
+        &-icon {
+          cursor: pointer;
+        }
+      }
+
+    }
+  }
+  &-years {
+    height: 100%;
+    &-content {
+      display: grid;
+      grid-gap: .5em;
+      justify-content: center;
+      width: 100%;
+      height: 100%;
+      grid-template-columns: repeat(4, 23%);
+      grid-template-rows: repeat(5, 17%);
+      &-year {
+        flex-direction: column;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-wrap: wrap;
+        width: 100%;
+        height: 100%;
+        box-sizing: border-box;
+        cursor: pointer;
+        font-size: 0.8em;
+        &-current {
+          background-color: #e0e7ea;
+          color: red;
+          border-radius: 4px;
+        }
+        &-selected {
+          background-color: #092192 ;
+          color: white;
+          border-radius: 4px;
+        }
+      }
+    }
+  }
+  &-months {
+    display: grid;
+    grid-gap: .5em;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    grid-template-columns: repeat(3, 31%);
+    grid-template-rows: repeat(4, 22%);
+    &-month {
+      flex-direction: column;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-wrap: wrap;
+      width: 100%;
+      height: 100%;
+      box-sizing: border-box;
+      font-size: 0.8em;
+      &-current {
+        background-color: #e0e7ea;
+        color: red;
+        border-radius: 4px;
+      }
+      &-selected {
+        background-color: #092192;
+        color: white;
+        border-radius: 4px;
+      }
+    }
+  }
+}
+.tempcalss {
+  display: flex;
+  flex-direction: column;
+  margin: 0 1em;
+}
